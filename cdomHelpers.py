@@ -297,7 +297,8 @@ class PlatformTypeCache() :
 class CDOMcorr:
     df : pd.DataFrame = field(default_factory=pd.DataFrame)
     version : str = '20240508'
-    dacdir : str = '/Users/ericrehm/Library/CloudStorage/OneDrive-Danaher/Sea-Bird/CDOM-Problem/FromMegan/'
+    # dacdir : str = '/Users/ericrehm/Library/CloudStorage/OneDrive-Danaher/Sea-Bird/CDOM-Problem/FromMegan/'
+    dacdir : str = '/content/drive/MyDrive/FromMegan/'
 
     def __post_init__(self):
         dacpath = Path(self.dacdir).glob(f'*_CDOM_SN_aug_{self.version}.csv')
