@@ -37,7 +37,7 @@ def dfRead(dataSetName) :
 def dfSave(dataSetName, dfm, dfmap) :
 
     # Save dataframe to CSV file
-    dfCSV = dataDir+dataDir+dataSetName+'_dfm.csv'
+    dfCSV = dataDir+dataSetName+'_dfm.csv'
     print(dfCSV)
     dfm.to_csv(dfCSV)
     dfmapCSV = dataDir+dataSetName+'_dfmap.csv'
