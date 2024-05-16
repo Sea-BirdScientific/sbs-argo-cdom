@@ -25,7 +25,7 @@ def dfRead(dataSetName) :
     dfm = pd.read_csv(dfCSV)
     dfm.wmoid = dfm.wmoid.astype('category')
 
-    dfmapCSV = dataSetName+'_dfmap.csv'
+    dfmapCSV = dataDir+dataSetName+'_dfmap.csv'
     dfmap = pd.read_csv(dfmapCSV)
     dfmap.wmoid = dfmap.wmoid.astype('category')
 
