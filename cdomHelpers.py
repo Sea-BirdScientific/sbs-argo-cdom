@@ -15,12 +15,12 @@ from Exploring_Argo_BGC_with_Argovis_helpers import polygon_lon_lat,  padlist, v
 
 API_KEY='3e2bda40368d095888a54898b2f52c1fa50df102'
 API_PREFIX = 'https://argovis-api.colorado.edu/'
-API_KEY='3e2bda40368d095888a54898b2f52c1fa50df102'
-API_PREFIX = 'https://argovis-api.colorado.edu/'
+
+dataDir = '/content/drive/MyDrive/SBS/data/'
 
 def dfRead(dataSetName) :
     # Read dataframe from CSV file
-    dfCSV = dataSetName+'_dfm.csv'
+    dfCSV = dataDir+dataSetName+'_dfm.csv'
     print(dfCSV)
     dfm = pd.read_csv(dfCSV)
     dfm.wmoid = dfm.wmoid.astype('category')
@@ -37,11 +37,13 @@ def dfRead(dataSetName) :
 def dfSave(dataSetName, dfm, dfmap) :
 
     # Save dataframe to CSV file
-    dfCSV = dataSetName+'_dfm.csv'
+    dfCSV = dataDir+dataSetName+'_dfm.csv'
     print(dfCSV)
     dfm.to_csv(dfCSV)
-    dfmapCSV = dataSetName+'_dfmap.csv'
+    dfmapCSV = dataDir+dataSetName+'_dfmap.csv'
     dfmap.to_csv(dfmapCSV)
+
+
 
 def getProfilesFromPolygon(polygon, startDate, endDate, platform_type ):
 
