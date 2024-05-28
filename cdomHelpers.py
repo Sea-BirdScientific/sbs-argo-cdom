@@ -13,10 +13,12 @@ from argovisHelpers import helpers as avh
 from Exploring_Argo_BGC_with_Argovis_helpers import polygon_lon_lat,  padlist, varrange, interpolate, \
     simple_map, plot_xycol, argo_heatmap, hurrplot, compare_plots
 
+# global variables (!!!)
 API_KEY='3e2bda40368d095888a54898b2f52c1fa50df102'
 API_PREFIX = 'https://argovis-api.colorado.edu/'
 
 dataDir = '/content/drive/MyDrive/SBS/data/'
+corrDir = '/content/drive/MyDrive/SBS/corrections/'
 
 def dfRead(dataSetName) :
     # Read dataframe from CSV file
@@ -33,7 +35,6 @@ def dfRead(dataSetName) :
 
     return (dfm, dfmap)
 
-
 def dfSave(dataSetName, dfm, dfmap) :
 
     # Save dataframe to CSV file
@@ -44,27 +45,46 @@ def dfSave(dataSetName, dfm, dfmap) :
     dfmap.to_csv(dfmapCSV)
 
 
-
 def getProfilesFromPolygon(polygon, startDate, endDate, platform_type ):
 
     nowiso = datetime.datetime.utcnow().replace(microsecond=0).isoformat()
     if endDate == '':
         endDate = nowiso+'Z'
 
-    # Set up Argovis query parameters
-    params = {
-            'startDate': startDate,
-            'endDate':   endDate,
-            'source': 'argo_bgc',
-            'polygon': eval(polygon),
-            'data': 'cdom,salinity,temperature',
-            'platform_type' : platform_type
-        }
-    print(params)
+    # delta time
+    delta = datetime.timedelta(days=365)
+    
+    # Accumulator list
+    dd = list()
 
-    # Make the query. Returns a list of JSON instances, one per profile
-    dd = avh.query('argo', options=params, apikey=API_KEY, apiroot=API_PREFIX)
+    # Argovis doesn't like big time + space queries.  Break up by time.
+    # iterate over range of dates, accumulate results year-by-year
+    startDate0 = pd.to_datetime(startDate)
+    endDate00 = pd.to_datetime(endDate)
+    edDate0 = endDate00
+    while (startDate0 <= endDate00):
+      endDate0 = startDate0 + delta
+      if endDate0 > endDate00:
+        endDate0 = endDate00
 
+      # Set up Argovis query parameters
+      params = {
+              'startDate': startDate0.isoformat(),
+              'endDate':   endDate0.isoformat(),
+              'source': 'argo_bgc',
+              'polygon': eval(polygon),
+              'data': 'cdom,salinity,temperature',
+              'platform_type' : platform_type
+          }
+      print(params)
+      d = avh.query('argo', options=params, apikey=API_KEY, apiroot=API_PREFIX)
+      dd.extend(d)
+  
+      # Increment date
+      startDate0 += delta
+
+      # Make the query. Returns a list of JSON instances, one per profile
+    
     # Create a dataframe from each profile JSON string (dfs is an array of dataframes)
     dfs = [pd.DataFrame.from_records([level for level in avh.data_inflate(profile)]) for profile in dd]
 
@@ -296,24 +316,13 @@ class PlatformTypeCache() :
 @dataclass
 class CDOMcorr:
     df : pd.DataFrame = field(default_factory=pd.DataFrame)
-    version : str = '20240508'
-    # dacdir : str = '/Users/ericrehm/Library/CloudStorage/OneDrive-Danaher/Sea-Bird/CDOM-Problem/FromMegan/'
-    dacdir : str = '/content/drive/MyDrive/FromMegan/'
+    version : str = '20240516'
+ 
 
     def __post_init__(self):
-        dacpath = Path(self.dacdir).glob(f'*_CDOM_SN_aug_{self.version}.csv')
-        self.df = pd.DataFrame([])
-        for filename in dacpath :
-            # print(filename.name)
-            dfdac = pd.read_csv(filename, dtype={'SENSOR_SERIAL_NO':str})
-            if not dfdac.empty :
-                if self.df.empty :
-                    self.df = dfdac 
-                else:
-                    self.df = pd.concat([self.df, dfdac],axis=0, ignore_index=True)
-                # print(filename.name)
-                # print(self.df.tail(1))
-        
+        filename = Path(corrDir) / Path(f'mcoms_CDOM_corr_{self.version}.csv')
+        self.df = pd.read_csv(filename, dtype={'SENSOR_SERIAL_NO':str})
+
     def query(self, wmoid, var) :
         try :
             outvar = self.df[self.df["WMOID"] == wmoid][var].iloc[0]
